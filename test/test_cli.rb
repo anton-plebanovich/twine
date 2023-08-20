@@ -48,6 +48,13 @@ class CLITest < TwineTest
     assert_equal 'UTF16', @options[:encoding]
   end
 
+  def assert_option_escape_all_tags
+    parse_with "--escape-all-tags"
+    assert @options[:escape_all_tags]
+    parse_with "--no-escape-all-tags"
+    refute @options[:escape_all_tags]
+  end
+
   def assert_option_format
     random_format = Twine::Formatters.formatters.sample.format_name.downcase
     parse_with "--format #{random_format}"
@@ -80,6 +87,13 @@ class CLITest < TwineTest
   def assert_option_output_path
     parse_with "--output-file #{@output_path}"
     assert_equal @output_path, @options[:output_path]  
+  end
+
+  def assert_option_quiet
+    parse_with '--quiet'
+    assert @options[:quiet]
+    parse_with '--no-quiet'
+    refute @options[:quiet]
   end
 
   def assert_option_tags
@@ -156,7 +170,7 @@ class TestGenerateLocalizationFileCLI < CLITest
 
   def test_missing_argument
     assert_raises Twine::Error do
-      parse "generate-localization-file #{@twine_file}"
+      parse "generate-localization-file #{@twine_file_path}"
     end
   end
 
@@ -170,10 +184,12 @@ class TestGenerateLocalizationFileCLI < CLITest
     assert_help
     assert_option_developer_language
     assert_option_encoding
+    assert_option_escape_all_tags
     assert_option_format
     assert_option_include
     assert_option_single_language
     assert_raises(Twine::Error) { assert_option_multiple_languages }
+    assert_option_quiet
     assert_option_tags
     assert_option_untagged
     assert_option_validate
@@ -209,8 +225,10 @@ class TestGenerateAllLocalizationFilesCLI < CLITest
     assert_help
     assert_option_developer_language
     assert_option_encoding
+    assert_option_escape_all_tags
     assert_option_format
     assert_option_include
+    assert_option_quiet
     assert_option_tags
     assert_option_untagged
     assert_option_validate
@@ -259,7 +277,9 @@ class TestGenerateLocalizationArchiveCLI < CLITest
     assert_help
     assert_option_developer_language
     assert_option_encoding
+    assert_option_escape_all_tags
     assert_option_include
+    assert_option_quiet
     assert_option_tags
     assert_option_untagged
     assert_option_validate
@@ -278,7 +298,7 @@ class TestGenerateLocalizationArchiveCLI < CLITest
 
   def test_deprecated_command_prints_warning
     parse "generate-loc-drop #{@twine_file_path} #{@output_path} --format apple"
-    assert_match "WARNING: Twine commands names have changed.", Twine::stderr.string
+    assert_match "WARNING: Twine commands names have changed.", Twine::stdout.string
   end
 end
 
@@ -317,6 +337,7 @@ class TestConsumeLocalizationFileCLI < CLITest
     assert_option_single_language
     assert_raises(Twine::Error) { assert_option_multiple_languages }
     assert_option_output_path
+    assert_option_quiet
     assert_option_tags
   end
 end
@@ -354,6 +375,7 @@ class TestConsumeAllLocalizationFilesCLI < CLITest
     assert_option_encoding
     assert_option_format
     assert_option_output_path
+    assert_option_quiet
     assert_option_tags
   end
 end
@@ -391,6 +413,7 @@ class TestConsumeLocalizationArchiveCLI < CLITest
     assert_option_encoding
     assert_option_format
     assert_option_output_path
+    assert_option_quiet
     assert_option_tags
   end
 
@@ -401,7 +424,7 @@ class TestConsumeLocalizationArchiveCLI < CLITest
 
   def test_deprecated_command_prints_warning
     parse "consume-loc-drop #{@twine_file_path} #{@input_path}"
-    assert_match "WARNING: Twine commands names have changed.", Twine::stderr.string
+    assert_match "WARNING: Twine commands names have changed.", Twine::stdout.string
   end
 end
 
@@ -432,6 +455,7 @@ class TestValidateTwineFileCLI < CLITest
   def test_options
     assert_help
     assert_option_developer_language
+    assert_option_quiet
   end
 
   def test_option_pedantic

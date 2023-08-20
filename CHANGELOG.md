@@ -1,3 +1,38 @@
+# 1.1.3 (2023-07-10)
+
+- Feature: Add support for nested JSON translations using the jQuery formatter (#296)
+
+# 1.1.2 (2022-11-15)
+
+- Bugfix: Fixed a runtime error caused by a missing rexml dependency in Ruby 3 (#312)
+
+# 1.1.1 (2021-01-28)
+
+- Bugfix: Properly parse multiline comments in Android XML files (#300)
+
+# 1.1 (2020-07-09)
+
+- Feature: Add --escape-all-tags option to force escaping of Android styling tags (#281)
+- Improvement: Twine now requires Ruby 2.4 or greater and rubyzip 2.0 or greater (#297)
+- Bugfix: Fix issues with the Django formatter (#289)
+
+# 1.0.6 (2019-05-28)
+
+- Improvement: Support more Android styling tags (#278)
+- Improvement: Update Android output path for default language (#276)
+
+# 1.0.5 (2019-02-24)
+
+- Bugfix: Incorrect language detection when reading localization files (#251)
+- Bugfix: Double quotes in Android files could be converted to single quotes (#254)
+- Bugfix: Properly escape quotes when writing gettext files (#268)
+
+# 1.0.4 (2018-05-30)
+
+- Feature: Add a --quiet option (#245)
+- Bugfix: Consume child HTML tags in Android formatter (#247)
+- Bugfix: Let consume-localization-archive return a non-zero status (#246)
+
 # 1.0.3 (2018-01-26)
 
 - Bugfix: Workaround a possible crash in safe_yaml (#237)

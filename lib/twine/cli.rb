@@ -45,6 +45,14 @@ module Twine
           files are UTF-16 without BOM, you need to specify if it's UTF-16LE or UTF16-BE.
         DESC
       },
+      escape_all_tags: {
+        switch: ['--[no-]escape-all-tags'],
+        description: <<-DESC,
+          Always escape all HTML tags. By default the Android formatter will ONLY escape styling tags, if a 
+          string also contains placeholders. This flag enforces that styling tags are escaped regardless of
+          placeholders.
+        DESC
+      },
       file_name: {
         switch: ['-n', '--file-name FILE_NAME'],
         description: 'This flag may be used to overwrite the default file name of the format.'
@@ -78,6 +86,10 @@ module Twine
         switch: ['-p', '--[no-]pedantic'],
         description: 'When validating a Twine file, perform additional checks that go beyond pure validity (like presence of tags).'
       },
+      quiet: {
+        switch: ['-q', '--[no-]quiet'],
+        description: 'Suppress all console output except error messages.'
+      },
       tags: {
         switch: ['-t', '--tags TAG1,TAG2,TAG3', Array],
         description: <<-DESC,
@@ -107,9 +119,11 @@ module Twine
         optional_options: [
           :developer_language,
           :encoding,
+          :escape_all_tags,
           :format,
           :include,
           :languages,
+          :quiet,
           :tags,
           :untagged,
           :validate
@@ -128,9 +142,11 @@ module Twine
           :create_folders,
           :developer_language,
           :encoding,
+          :escape_all_tags,
           :file_name,
           :format,
           :include,
+          :quiet,
           :tags,
           :untagged,
           :validate
@@ -146,7 +162,9 @@ module Twine
         optional_options: [
           :developer_language,
           :encoding,
+          :escape_all_tags,
           :include,
+          :quiet,
           :tags,
           :untagged,
           :validate
@@ -164,6 +182,7 @@ module Twine
           :format,
           :languages,
           :output_path,
+          :quiet,
           :tags
         ],
         option_validation: Proc.new { |options|
@@ -183,6 +202,7 @@ module Twine
           :encoding,
           :format,
           :output_path,
+          :quiet,
           :tags
         ],
         example: 'twine consume-all-localization-files twine.txt Resources/Locales/ --developer-language en --tags DefaultTag1,DefaultTag2'
@@ -197,6 +217,7 @@ module Twine
           :encoding,
           :format,
           :output_path,
+          :quiet,
           :tags
         ],
         example: 'twine consume-localization-archive twine.txt LocDrop5.zip'
@@ -206,7 +227,8 @@ module Twine
         arguments: [:twine_file],
         optional_options: [
           :developer_language,
-          :pedantic
+          :pedantic,
+          :quiet
         ],
         example: 'twine validate-twine-file twine.txt'
       }
@@ -227,7 +249,7 @@ module Twine
 
       mapped_command = DEPRECATED_COMMAND_MAPPINGS[command]
       if mapped_command
-        Twine::stderr.puts "WARNING: Twine commands names have changed. `#{command}` is now `#{mapped_command}`. The old command is deprecated and will soon stop working. For more information please check the documentation at https://github.com/mobiata/twine"
+        Twine::stdout.puts "WARNING: Twine commands names have changed. `#{command}` is now `#{mapped_command}`. The old command is deprecated and will soon stop working. For more information please check the documentation at https://github.com/mobiata/twine"
         command = mapped_command
       end
 

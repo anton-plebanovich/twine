@@ -61,7 +61,7 @@ Formatters inherit from [`Abstract`](/lib/twine/formatters/abstract.rb) and need
 
 The `Abstract` formatter also specifies two utility methods to be used when read a localization file, `set_translation_for_key` and `set_comment_for_key`, however the actual parsing is too formatter specific and must be implemented in the `read` method of a formatter.
 
-Which methods to overwrite to produce the desired output depends pretty much on the format. Again, looking at the [bundeled formatters](/lib/twine/formatters) will provide some insight.
+Which methods to overwrite to produce the desired output depends pretty much on the format. Again, looking at the [bundled formatters](/lib/twine/formatters) will provide some insight.
 
 Finally, to make a formatter available, it needs to be added to the list of formatters
 
@@ -83,8 +83,13 @@ Plugins are specified as values for the `gems` key. The following is an example 
 gems: wicked_twine
 ```
 
-Multiple gems can also be specfied in the yaml file.
+Multiple gems can also be specified in the yaml file.
 
 ```
 gems: [wicked_twine, some_other_plugin]
 ```
+
+## Sample Plugins
+
+* [appium-twine](https://github.com/appium/appium_twine)
+* [twine-flutter](https://github.com/tiknil/twine-flutter)

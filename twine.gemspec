@@ -6,10 +6,9 @@ Gem::Specification.new do |s|
   s.version      = Twine::VERSION
   s.date         = Time.now.strftime('%Y-%m-%d')
   s.summary      = "Manage strings and their translations for your iOS, Android and other projects."
-  s.homepage     = "https://github.com/mobiata/twine"
+  s.homepage     = "https://github.com/scelis/twine"
   s.email        = "twine@mobiata.com"
   s.authors      = [ "Sebastian Celis" ]
-  s.has_rdoc     = false
   s.license      = "BSD-3-Clause"
 
   s.files        = %w( Gemfile README.md LICENSE )
@@ -18,10 +17,11 @@ Gem::Specification.new do |s|
   s.files       += Dir.glob("test/**/*")
   s.test_files   = Dir.glob("test/test_*")
 
-  s.required_ruby_version = ">= 2.0"
-  s.add_runtime_dependency('rubyzip', "~> 1.1")
+  s.required_ruby_version = ">= 2.6"
+  s.add_runtime_dependency('rexml', "~> 3.2")
+  s.add_runtime_dependency('rubyzip', "~> 2.0")
   s.add_runtime_dependency('safe_yaml', "~> 1.0")
-  s.add_development_dependency('rake', "~> 10.4")
+  s.add_development_dependency('rake', "~> 13.0")
   s.add_development_dependency('minitest', "~> 5.5")
   s.add_development_dependency('minitest-ci', "~> 3.0")
   s.add_development_dependency('mocha', "~> 1.1")

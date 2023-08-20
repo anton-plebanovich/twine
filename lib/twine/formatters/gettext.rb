@@ -15,16 +15,6 @@ module Twine
         'strings.po'
       end
 
-      def determine_language_given_path(path)
-        path_arr = path.split(File::SEPARATOR)
-        path_arr.each do |segment|
-          match = /([a-z]{2}(-[A-Za-z]{2})?)\.po$/.match(segment)
-          return match[1] if match
-        end
-
-        return
-      end
-
       def read(io, lang)
         comment_regex = /#.? *"(.*)"$/
         key_regex = /msgctxt *"(.*)"$/
@@ -65,7 +55,7 @@ module Twine
       end
 
       def format_header(lang)
-        "msgid \"\"\nmsgstr \"\"\n\"Language: #{lang}\\n\"\n\"X-Generator: Twine #{Twine::VERSION}\\n\"\n"
+        "msgid \"\"\nmsgstr \"\"\n\"Language: #{lang}\"\n\"X-Generator: Twine #{Twine::VERSION}\"\n"
       end
 
       def format_section_header(section)
@@ -86,15 +76,15 @@ module Twine
       end
 
       def format_key(key)
-        "msgctxt \"#{key}\"\n"
+        "msgctxt \"#{escape_quotes(key)}\"\n"
       end
 
       def format_base_translation(definition)
-        "msgid \"#{definition.translations[@default_lang]}\"\n"
+        "msgid \"#{escape_quotes(definition.translations[@default_lang])}\"\n"
       end
 
       def format_value(value)
-        "msgstr \"#{value}\"\n"
+        "msgstr \"#{escape_quotes(value)}\"\n"
       end
     end
   end

@@ -1,8 +1,6 @@
 # Twine
 
-[![Continuous Integration by CircleCI](https://circleci.com/gh/teespring/twine.svg?style=shield)](https://circleci.com/gh/teespring/twine)
-
-Twine is a command line tool for managing your strings and their translations. These are all stored in a master text file and then Twine uses this file to import and export localization files in a variety of types, including iOS and Mac OS X `.strings` files, Android `.xml` files, gettext `.po` files, and [jquery-localize][jquerylocalize] `.json` files. This allows individuals and companies to easily share translations across multiple projects, as well as export localization files in any format the user wants.
+Twine is a command line tool for managing your strings and their translations. These are all stored in a single text file and then Twine uses this file to import and export localization files in a variety of types, including iOS and Mac OS X `.strings` files, Android `.xml` files, gettext `.po` files, and [jquery-localize][jquerylocalize] `.json` files. This allows individuals and companies to easily share translations across multiple projects, as well as export localization files in any format the user wants.
 
 ## Install
 
@@ -24,7 +22,7 @@ Twine supports [`printf` style placeholders][printf] with one peculiarity: `@` i
 
 Tags are used by Twine as a way to only work with a subset of your definitions at any given point in time. Each definition can be assigned zero or more tags which are separated by commas. Tags are optional, though highly recommended. You can get a list of all definitions currently missing tags by executing the [`validate-twine-file`](#validate-twine-file) command with the `--pedantic` option.
 
-When generating a localization file, you can specify which definitions should be included using the `--tags` option. Provide a comma separated list of tags to match all definitions that contain any of the tags (`--tags tag1,tag2` matches all definitions tagged with `tag1` _or_ `tag2`). Provide multiple `--tags` options to match defintions containing all specified tags (`--tags tag1 --tags tag2` matches all definitions tagged with `tag1` _and_ `tag2`). You can match definitions _not_ containing a tag by prefixing the tag with a tilde (`--tags ~tag1` matches all definitions _not_ tagged with `tag1`). All three options are combinable.
+When generating a localization file, you can specify which definitions should be included using the `--tags` option. Provide a comma separated list of tags to match all definitions that contain any of the tags (`--tags tag1,tag2` matches all definitions tagged with `tag1` _or_ `tag2`). Provide multiple `--tags` options to match definitions containing all specified tags (`--tags tag1 --tags tag2` matches all definitions tagged with `tag1` _and_ `tag2`). You can match definitions _not_ containing a tag by prefixing the tag with a tilde (`--tags ~tag1` matches all definitions _not_ tagged with `tag1`). All three options are combinable.
 
 ### Whitespace
 
@@ -80,8 +78,8 @@ Twine currently supports the following output formats:
 * [Android String Resources][androidstrings] (format: android)
     * HTML tags will be escaped by replacing `<` with `&lt`
     * Tags inside `<![CDATA[` won't be escaped.
-    * Supports [basic styling][androidstyling] with `<b>`, `<i>`, `<u>` and `<a>` links.
-	    * These tags will *not* be escaped if the string doesn't contain placeholders. You can reference them directly in your layouts or by using [`getText()`](https://developer.android.com/reference/android/content/res/Resources.html#getText(int)) to read them programatically.
+    * Supports [basic styling][androidstyling] according to [Android documentation](https://developer.android.com/guide/topics/resources/string-resource.html#StylingWithHTML).  All of the documented tags are supported, in addition to `<a>` links.
+	    * These tags will *not* be escaped if the string doesn't contain placeholders. You can reference them directly in your layouts or by using [`getText()`](https://developer.android.com/reference/android/content/res/Resources.html#getText(int)) to read them programmatically.
 	    * These tags *will* be escaped if the string contains placeholders. You can use [`getString()`](https://developer.android.com/reference/android/content/res/Resources.html#getString(int,%20java.lang.Object...)) combined with [`fromHtml`](https://developer.android.com/reference/android/text/Html.html#fromHtml(java.lang.String)) as shown in the [documentation][androidstyling] to display them.
 	* See [\#212](https://github.com/scelis/twine/issues/212) for details.
 * [Gettext PO Files][gettextpo] (format: gettext)
@@ -150,7 +148,7 @@ This command validates that the Twine data file can be parsed, contains no dupli
 The easiest way to create your first Twine data file is to run the [`consume-all-localization-files`](#consume-all-localization-files) command. The one caveat is to first create a blank file to use as your starting point. Then, just point the `consume-all-localization-files` command at a directory in your project containing all of your localization files.
 
 	$ touch twine.txt
-	$ twine consume-all-localization-files twine.txt Resources/Locales --developer-language en --consume-all --consume-comments
+	$ twine consume-all-localization-files twine.txt Resources/Locales --developer-language en --consume-all --consume-comments --format apple/android/gettext/jquery/django/tizen/flash
 
 ## Twine and Your Build Process
 
@@ -174,7 +172,10 @@ Now, whenever you build your application, Xcode will automatically invoke Twine 
 
 ### Android Studio/Gradle
 
-Add the following task at the top level in app/build.gradle:
+#### Standard
+
+Add the following code to `app/build.gradle`:
+
 ```
 task generateLocalizations {
 	String script = 'if hash twine 2>/dev/null; then twine generate-localization-file twine.txt ./src/main/res/values/generated_strings.xml; fi'
@@ -183,10 +184,46 @@ task generateLocalizations {
 		args '-c', script
 	}
 }
+
+preBuild {
+	dependsOn generateLocalizations
+}
 ```
 
-Now every time you build your app the localization files are generated from the Twine file.
+#### Using [jruby](http://jruby.org)
 
+With this approach, developers do not need to manually install ruby, gem, or twine.
+
+Add the following code to `app/build.gradle`:
+
+```
+buildscript {
+	repositories { jcenter() }
+
+	dependencies {
+		/* NOTE: Set your preferred version of jruby here. */
+		classpath "com.github.jruby-gradle:jruby-gradle-plugin:1.5.0"
+	}
+}
+
+apply plugin: 'com.github.jruby-gradle.base'
+
+dependencies {
+	/* NOTE: Set your preferred version of twine here. */
+	jrubyExec 'rubygems:twine:1.1'
+}
+
+task generateLocalizations (type: JRubyExec) {
+	dependsOn jrubyPrepare
+	jrubyArgs '-S'
+	script "twine"
+	scriptArgs 'generate-localization-file', 'twine.txt', './src/main/res/values/generated_strings.xml'
+}
+
+preBuild {
+	dependsOn generateLocalizations
+}
+```
 
 ## User Interface
 

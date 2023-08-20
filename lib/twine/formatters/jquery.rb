@@ -21,20 +21,30 @@ module Twine
             return match[1]
           end
         end
-
+        
         return
+      end
+
+      def set_translation_for_key_recursive(key, lang, value)
+        if value.is_a?(Hash)
+          value.each do |key2, value2|
+            set_translation_for_key_recursive(key+"."+key2, lang, value2)
+          end
+        else
+          set_translation_for_key(key, lang, value)
+        end
       end
 
       def read(io, lang)
         begin
           require "json"
         rescue LoadError
-          raise Twine::Error.new "You must run 'gem install json' in order to read or write jquery-localize files."
+          raise Twine::Error.new "You must run `gem install json` in order to read or write jquery-localize files."
         end
 
         json = JSON.load(io)
         json.each do |key, value|
-          set_translation_for_key(key, lang, value)
+          set_translation_for_key_recursive(key, lang, value)
         end
       end
 
@@ -46,7 +56,7 @@ module Twine
 
       def format_sections(twine_file, lang)
         sections = twine_file.sections.map { |section| format_section(section, lang) }
-        sections.delete_if &:empty?
+        sections.delete_if(&:empty?)
         sections.join(",\n\n")
       end
 

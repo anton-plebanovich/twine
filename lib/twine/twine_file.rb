@@ -49,7 +49,7 @@ module Twine
     end
 
     def translation_for_lang(lang)
-      translation = [lang].flatten.map { |l| @translations[l] }.first
+      translation = [lang].flatten.map { |l| @translations[l] }.compact.first
 
       translation = reference.translation_for_lang(lang) if translation.nil? && reference
 
@@ -217,7 +217,7 @@ module Twine
 
             value = write_value(definition, dev_lang, f)
             if !value && !definition.reference_key
-              puts "Warning: #{definition.key} does not exist in developer language '#{dev_lang}'"
+              Twine::stdout.puts "WARNING: #{definition.key} does not exist in developer language '#{dev_lang}'"
             end
             
             if definition.reference_key

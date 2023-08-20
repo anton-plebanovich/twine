@@ -49,11 +49,15 @@ module Twine
           end
         end
 
-        return
+        return super
       end
 
       def output_path_for_language(lang)
-        "values-#{lang}".gsub(/-(\p{Lu})/, '-r\1')
+        if lang == @twine_file.language_codes[0]
+          "values"
+        else
+          "values-#{lang}".gsub(/-(\p{Lu})/, '-r\1')
+        end
       end
 
       def set_translation_for_key(key, lang, value)
@@ -68,18 +72,20 @@ module Twine
 
       def read(io, lang)
         document = REXML::Document.new io, :compress_whitespace => %w{ string }
-
+        document.context[:attribute_quote] = :quote
         comment = nil
         document.root.children.each do |child|
           if child.is_a? REXML::Comment
             content = child.string.strip
+            content.gsub!(/[\s]+/, ' ')
             comment = content if content.length > 0 and not content.start_with?("SECTION:")
           elsif child.is_a? REXML::Element
             next unless child.name == 'string'
 
             key = child.attributes['name']
 
-            set_translation_for_key(key, lang, child.text)
+            content = child.children.map(&:to_s).join
+            set_translation_for_key(key, lang, content)
             set_comment_for_key(key, comment) if comment
 
             comment = nil
@@ -126,22 +132,26 @@ module Twine
 
       # http://developer.android.com/guide/topics/resources/string-resource.html#FormattingAndStyling
       def escape_value(value)
-        inside_cdata = /<\!\[CDATA\[((?!\]\]>).)*$/       # opening CDATA tag ('<![CDATA[') not followed by a closing tag (']]>')
-        inside_opening_anchor_tag = /<a\s?((?!>).)*$/     # anchor tag start ('<a ') not followed by a '>'
+        inside_cdata = /<\!\[CDATA\[((?!\]\]>).)*$/              # opening CDATA tag ('<![CDATA[') not followed by a closing tag (']]>')
+        inside_opening_tag = /<(a|font|span|p)\s?((?!>).)*$/     # tag start ('<a ', '<font ', '<span ' or '<p ') not followed by a '>'
 
         # escape double and single quotes and & signs
-        value = gsub_unless(value, '"', '\\"') { |substring| substring =~ inside_cdata || substring =~ inside_opening_anchor_tag }
+        value = gsub_unless(value, '"', '\\"') { |substring| substring =~ inside_cdata || substring =~ inside_opening_tag }
         value = gsub_unless(value, "'", "\\'") { |substring| substring =~ inside_cdata }
-        value = gsub_unless(value, /&/, '&amp;') { |substring| substring =~ inside_cdata || substring =~ inside_opening_anchor_tag }
+        value = gsub_unless(value, /&/, '&amp;') { |substring| substring =~ inside_cdata || substring =~ inside_opening_tag }
 
         # if `value` contains a placeholder, escape all angle brackets
         # if not, escape opening angle brackes unless it's a supported styling tag
         # https://github.com/scelis/twine/issues/212
         # https://stackoverflow.com/questions/3235131/#18199543
-        if number_of_twine_placeholders(value) > 0
-          angle_bracket = /<(?!(\/?(\!\[CDATA)))/           # matches all `<` but <![CDATA
-        else  
-          angle_bracket = /<(?!(\/?(b|u|i|a|\!\[CDATA)))/   # matches all `<` but <b>, <u>, <i>, <a> and <![CDATA
+        if number_of_twine_placeholders(value) > 0 or @options[:escape_all_tags]
+          # matches all `<` but <![CDATA
+          angle_bracket = /<(?!(\/?(\!\[CDATA)))/
+        else
+          # matches all '<' but <b>, <em>, <i>, <cite>, <dfn>, <big>, <small>, <font>, <tt>, <s>,
+          # <strike>, <del>, <u>, <super>, <sub>, <ul>, <li>, <br>, <div>, <span>, <p>, <a>
+          # and <![CDATA
+          angle_bracket = /<(?!(\/?(b|em|i|cite|dfn|big|small|font|tt|s|strike|del|u|super|sub|ul|li|br|div|span|p|a|\!\[CDATA)))/
         end
         value = gsub_unless(value, angle_bracket, '&lt;') { |substring| substring =~ inside_cdata }
 
